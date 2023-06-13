@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package article;
+
+option go_package = "grpc/grpc_redis/pb";
+import "google/protobuf/timestamp.proto";
+
+service ArticleService {
+  rpc CreateUser(CreateArticleRequest) returns (Article);
+}
+
+message User {
+  string id = 1;
+  string name = 2;
+  string content = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
+}
+
+message CreateArticleRequest {
+  string title = 1;
+  string content = 2;
+}
