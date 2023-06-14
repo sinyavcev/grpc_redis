@@ -10,6 +10,7 @@ require (
 )
 
 require (
+	github.com/bxcodec/faker/v4 v4.0.0-beta.3 // indirect
 	github.com/go-co-op/gocron v1.28.3 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
