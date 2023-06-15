@@ -10,8 +10,3 @@ type User struct {
 	CreateAt  time.Time `json:"created_at,omitempty" bson:"created_at,omitempty"`
 	UpdatedAt time.Time `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
 }
-
-type CreateArticleRequest struct {
-	Title   string
-	Content string
-}

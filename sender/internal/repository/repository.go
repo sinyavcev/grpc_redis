@@ -3,11 +3,11 @@ package repository
 import (
 	"context"
 	"go.mongodb.org/mongo-driver/mongo"
-	"grpc/internal/models"
+	"grpc/pb"
 )
 
 type UserService interface {
-	Create(ctx context.Context, user models.User) (string, error)
+	CreateUser(ctx context.Context, user pb.CreateUserRequest) (string, error)
 }
 
 type Repository struct {

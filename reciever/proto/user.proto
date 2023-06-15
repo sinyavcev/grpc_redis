@@ -4,9 +4,12 @@ package user;
 
 option go_package = "grpc/grpc_redis/pb";
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
 
 service UserService {
-  rpc CreateUser(CreateUserRequest) returns (User);
+  rpc CreateUser(CreateUserRequest) returns (google.protobuf.StringValue);
+  rpc UpdateUser(UpdateUserRequest) returns (google.protobuf.StringValue);
 }
 
 message User {
@@ -18,6 +21,11 @@ message User {
 }
 
 message CreateUserRequest {
+  string name = 1;
+  string phone = 2;
+}
+
+message UpdateUserRequest {
   string name = 1;
   string phone = 2;
 }

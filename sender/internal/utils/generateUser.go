@@ -3,7 +3,7 @@ package utils
 import (
 	"fmt"
 	"github.com/bxcodec/faker/v4"
-	"grpc/internal/models"
+	"grpc/pb"
 )
 
 type SomeStructWithTags struct {
@@ -11,13 +11,13 @@ type SomeStructWithTags struct {
 	UserName    string `faker:"username"`
 }
 
-func GenerateUser() *models.User {
+func GenerateUser() *pb.CreateUserRequest {
 	user := SomeStructWithTags{}
 	err := faker.FakeData(&user)
 	if err != nil {
 		fmt.Println(err)
 	}
-	return &models.User{
+	return &pb.CreateUserRequest{
 		Name:  user.UserName,
 		Phone: user.PhoneNumber,
 	}

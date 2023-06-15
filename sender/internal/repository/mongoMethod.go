@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"grpc/internal/models"
+	"grpc/pb"
 )
 
 type DB struct {
 	collection *mongo.Collection
 }
 
-func (d *DB) Create(ctx context.Context, user models.User) (string, error) {
+func (d *DB) CreateUser(ctx context.Context, user pb.CreateUserRequest) (string, error) {
 	result, err := d.collection.InsertOne(ctx, user)
 	if err != nil {
 		return "", fmt.Errorf("failed to create stock due to error: %v", err)

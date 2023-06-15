@@ -2,49 +2,36 @@ package app
 
 import (
 	"context"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
-	"grpc/internal/app/serverGRPC"
+	"fmt"
+	"github.com/go-co-op/gocron"
+	"grpc/internal/app/clientGRPC"
 	"grpc/internal/repository"
 	"grpc/internal/utils"
-	"grpc/pb"
 	"log"
-	"net"
+	"time"
 )
 
 func Run() {
-	//client, err := repository.NewMongo("user")
+	clientGRPC := clientGRPC.NewClient()
 
-	//if err != nil {
-	//	fmt.Errorf("repository.NewMongo", err)
-	//}
+	clientMongo, err := repository.Init(context.Background(), "user")
+	coll := clientMongo.Collection("users")
+	db := repository.NewRepository(coll)
 
-	//shed := gocron.NewScheduler(time.UTC)
-	//shed.Every(5).Seconds().Do(func() {
-	//	//user := utils.GenerateUser()
-	//})
-	//db := client.Client.Collection("users")
-	//db.InsertOne(context.Background(), "user")
-	//shed.StartAsync()
-	user := utils.GenerateUser()
-	client, err := repository.Init(context.Background(), "user")
-	db := repository.NewRepository(client.Collection("users"))
-
-	db.Create(context.Background(), *user)
-
-	gRPC := grpc.NewServer()
-
-	pb.RegisterUserServiceServer(gRPC, &serverGRPC.Server{})
-	reflection.Register(gRPC)
-
-	listener, err := net.Listen("tcp", "0.0.0.0:8080")
 	if err != nil {
-		log.Fatal("cannot create grpc server: ", err)
+		fmt.Errorf("repository.Init %w", err)
 	}
 
-	log.Printf("start gRPC server on %s", listener.Addr().String())
-	err = gRPC.Serve(listener)
-	if err != nil {
-		log.Fatal("cannot create grpc server: ", err)
-	}
+	scheduler := gocron.NewScheduler(time.UTC)
+	scheduler.Every(5).Seconds().Do(func() {
+		user := utils.GenerateUser()
+		db.CreateUser(context.Background(), *user)
+		res, err := clientGRPC.CreateUser(context.Background(), user)
+		if err != nil {
+			log.Fatalf("CreateUser: %v", err)
+		}
+		fmt.Println(res)
+	})
+	scheduler.StartAsync()
+	scheduler.StartBlocking()
 }
