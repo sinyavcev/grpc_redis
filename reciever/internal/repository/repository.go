@@ -8,6 +8,7 @@ import (
 
 type UserRepository interface {
 	CreateUser(ctx context.Context, user pb.CreateUserRequest) error
+	UpdateUser(ctx context.Context, user pb.UpdateUserRequest) (string, error)
 }
 
 type Repository struct {

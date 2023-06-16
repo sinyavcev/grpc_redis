@@ -19,11 +19,16 @@ func (s *Server) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*wr
 		return &wrappers.StringValue{Value: "Пользователь не добавлен"}, fmt.Errorf("CreateUser", err)
 	}
 	result := "Пользователь" + req.Name + " добавлен"
+	fmt.Println(result)
 	return &wrappers.StringValue{Value: result}, nil
 }
 
-//func (s *Server) UpdateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.User, error) {
-//	res := s.Repos.(ctx, *req)
-//	fmt.Println(res)
-//	return res, nil
-//}
+func (s *Server) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*wrappers.StringValue, error) {
+	userName, err := s.Repos.UserRepository.UpdateUser(ctx, *req)
+	if err != nil {
+		return &wrappers.StringValue{Value: "Пользователь не обновлен"}, fmt.Errorf("CreateUser", err)
+	}
+	result := "Пользователь " + userName + " обновлен на " + req.Name
+	fmt.Println(result)
+	return &wrappers.StringValue{Value: result}, nil
+}

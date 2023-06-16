@@ -12,20 +12,24 @@ type DB struct {
 }
 
 func (db *DB) CreateUser(ctx context.Context, user pb.CreateUserRequest) error {
-	err := db.redis.Set(ctx, user.Phone, user.Name, 0)
+	err := db.redis.Set(ctx, user.Phone, user.Name, 0).Err()
 	if err != nil {
 		fmt.Errorf("Redis insert failed", err)
-		return err.Err()
+		return err
 	}
 	return nil
 }
-func (db *DB) UpdateUser(ctx context.Context, user pb.CreateUserRequest) error {
-	err := db.redis.Set(ctx, user.Phone, user.Name, 0)
+func (db *DB) UpdateUser(ctx context.Context, user pb.UpdateUserRequest) (string, error) {
+	userName, err := db.redis.Get(ctx, user.Phone).Result()
+	if err != nil {
+		fmt.Errorf("db.redis.Get", err)
+	}
+	err = db.redis.Set(ctx, user.Phone, user.Name, 0).Err()
 	if err != nil {
 		fmt.Errorf("Redis update failed", err)
-		return err.Err()
+		return "", err
 	}
-	return nil
+	return userName, nil
 }
 
 func NewRedisMethod(redis *redis.Client) *DB {

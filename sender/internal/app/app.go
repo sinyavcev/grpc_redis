@@ -7,7 +7,6 @@ import (
 	"grpc/internal/app/clientGRPC"
 	"grpc/internal/repository"
 	"grpc/internal/utils"
-	"log"
 	"time"
 )
 
@@ -25,10 +24,15 @@ func Run() {
 	scheduler := gocron.NewScheduler(time.UTC)
 	scheduler.Every(5).Seconds().Do(func() {
 		user := utils.GenerateUser()
-		db.CreateUser(context.Background(), *user)
-		res, err := clientGRPC.CreateUser(context.Background(), user)
-		if err != nil {
-			log.Fatalf("CreateUser: %v", err)
+		_, errDB := db.CreateUser(context.Background(), *user)
+		if errDB != nil {
+			fmt.Println("Error creating user in DB: ", err)
+			return
+		}
+		res, errGRPC := clientGRPC.CreateUser(context.Background(), user)
+		if errGRPC != nil {
+			fmt.Println("Error creating user with GRPC client: ", err)
+			return
 		}
 		fmt.Println(res)
 	})
