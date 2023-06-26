@@ -1,7 +1,7 @@
 package main
 
 import (
-	"grpc/internal/app"
+	"sender/internal/app"
 )
 
 func main() {

@@ -2,20 +2,20 @@ package repository
 
 import (
 	"context"
+	"github.com/sinyavcev/proto/pb"
 	"go.mongodb.org/mongo-driver/mongo"
-	"grpc/pb"
 )
 
-type UserService interface {
+type UserRepository interface {
 	CreateUser(ctx context.Context, user pb.CreateUserRequest) (string, error)
 }
 
 type Repository struct {
-	UserService
+	UserRepository UserRepository
 }
 
 func NewRepository(db *mongo.Collection) *Repository {
 	return &Repository{
-		UserService: NewMongoMethod(db),
+		UserRepository: NewMongoMethod(db),
 	}
 }

@@ -3,32 +3,43 @@ package serverGRPC
 import (
 	"context"
 	"fmt"
-	"github.com/golang/protobuf/ptypes/wrappers"
+	"github.com/sinyavcev/proto/pb"
+	"reciever/common/logger"
 	"reciever/internal/repository"
-	"reciever/pb"
 )
 
 type Server struct {
-	Repos                             repository.Repository
+	Logger                            *logger.Logger
+	Repos                             *repository.Repository
 	pb.UnimplementedUserServiceServer // встраивание не реализованного интерфейса
 }
 
-func (s *Server) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*wrappers.StringValue, error) {
+func (s *Server) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.User, error) {
 	err := s.Repos.UserRepository.CreateUser(ctx, *req)
 	if err != nil {
-		return &wrappers.StringValue{Value: "Пользователь не добавлен"}, fmt.Errorf("CreateUser", err)
+		return nil, fmt.Errorf("CreateUser", err)
 	}
-	result := "Пользователь" + req.Name + " добавлен"
-	fmt.Println(result)
-	return &wrappers.StringValue{Value: result}, nil
+	result := "Пользователь " + req.Name + " добавлен"
+
+	s.Logger.Info(result)
+
+	return &pb.User{
+		Name:  req.Name,
+		Phone: req.Phone,
+	}, nil
 }
 
-func (s *Server) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*wrappers.StringValue, error) {
+func (s *Server) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.User, error) {
 	userName, err := s.Repos.UserRepository.UpdateUser(ctx, *req)
 	if err != nil {
-		return &wrappers.StringValue{Value: "Пользователь не обновлен"}, fmt.Errorf("CreateUser", err)
+		return nil, fmt.Errorf("update User %w", err)
 	}
 	result := "Пользователь " + userName + " обновлен на " + req.Name
-	fmt.Println(result)
-	return &wrappers.StringValue{Value: result}, nil
+
+	s.Logger.Info(result)
+
+	return &pb.User{
+		Name:  req.Name,
+		Phone: req.Phone,
+	}, nil
 }

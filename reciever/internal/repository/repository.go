@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 	"github.com/redis/go-redis/v9"
-	"reciever/pb"
+	"github.com/sinyavcev/proto/pb"
 )
 
 type UserRepository interface {

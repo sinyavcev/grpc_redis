@@ -4,38 +4,60 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-co-op/gocron"
-	"grpc/internal/app/clientGRPC"
-	"grpc/internal/repository"
-	"grpc/internal/utils"
+	"github.com/spf13/viper"
+	"log"
+	"os"
+	"sender/configs"
+	"sender/internal/app/clientGRPC"
+	"sender/internal/common/logger"
+	"sender/internal/common/mongo"
+	"sender/internal/repository"
+	"sender/internal/utils"
 	"time"
 )
 
 func Run() {
-	clientGRPC := clientGRPC.NewClient()
+	if err := configs.LoadConfig("configs"); err != nil {
+		log.Fatalf("LoadConfig", err.Error())
+	}
 
-	clientMongo, err := repository.Init(context.Background(), "user")
-	coll := clientMongo.Collection("users")
-	db := repository.NewRepository(coll)
+	logger, err := logger.NewLogger(viper.GetString("LOG_LEVEL"))
+	if err != nil {
+		log.Printf("logger.NewLogger: %w", err)
+		os.Exit(1)
+	}
 
+	clientMongo, err := mongo.Init(
+		context.Background(),
+		viper.GetString("DB_ADDRESS"),
+		viper.GetString("DB_NAME"),
+	)
 	if err != nil {
 		fmt.Errorf("repository.Init %w", err)
 	}
 
-	scheduler := gocron.NewScheduler(time.UTC)
+	var (
+		clientGRPC = clientGRPC.NewClient(viper.GetString("CLIENT_ADDRESS"))
+		coll       = clientMongo.Collection(viper.GetString("DB_COLLECTION"))
+		db         = repository.NewRepository(coll)
+		scheduler  = gocron.NewScheduler(time.UTC)
+	)
+
 	scheduler.Every(5).Seconds().Do(func() {
 		user := utils.GenerateUser()
-		_, errDB := db.CreateUser(context.Background(), *user)
+		_, errDB := db.UserRepository.CreateUser(context.Background(), *user)
 		if errDB != nil {
-			fmt.Println("Error creating user in DB: ", err)
+			fmt.Errorf("error creating user in DB: %w", err)
 			return
 		}
 		res, errGRPC := clientGRPC.CreateUser(context.Background(), user)
 		if errGRPC != nil {
-			fmt.Println("Error creating user with GRPC client: ", err)
+			fmt.Errorf("error creating user with GRPC client: %w", err)
 			return
 		}
-		fmt.Println(res)
+		logger.Info(res)
 	})
 	scheduler.StartAsync()
 	scheduler.StartBlocking()
+
 }

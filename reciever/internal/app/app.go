@@ -2,32 +2,48 @@ package app
 
 import (
 	"context"
+	"fmt"
+	"github.com/sinyavcev/proto/pb"
+	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"log"
 	"net"
+	"os"
+	"reciever/common/logger"
+	"reciever/common/redis"
+	"reciever/configs"
 	"reciever/internal/app/serverGRPC"
 	"reciever/internal/repository"
-	"reciever/pb"
 )
 
 func Run() {
 
-	//client, err := repository.Init()
-	//
-	//db := repository.NewRepository(client.Collection("users"))
-	//db.CreateUser(context.Background(), *user)
+	if err := configs.LoadConfig("configs"); err != nil {
+		log.Fatalf("LoadConfig", err.Error())
+	}
 
-	gRPC := grpc.NewServer()
-	client, _ := repository.Init(context.Background(), "localhost:6379")
+	logger, err := logger.NewLogger(viper.GetString("LOG_LEVEL"))
+	if err != nil {
+		log.Printf("logger.NewLogger: %w", err)
+		os.Exit(1)
+	}
 
-	repository := repository.NewRepository(client)
-	server := serverGRPC.Server{Repos: *repository}
+	client, err := redis.NewRedis(context.Background(), viper.GetString("DB_ADDRESS"))
+	if err != nil {
+		fmt.Errorf("redis.NewRedis: %w", err)
+	}
+
+	var (
+		gRPC       = grpc.NewServer()
+		repository = repository.NewRepository(client)
+		server     = serverGRPC.Server{Repos: repository, Logger: logger}
+	)
 
 	pb.RegisterUserServiceServer(gRPC, &server)
 	reflection.Register(gRPC)
 
-	listener, err := net.Listen("tcp", "0.0.0.0:8080")
+	listener, err := net.Listen("tcp", viper.GetString("SERVER_ADDRESS"))
 	if err != nil {
 		log.Fatal("cannot create grpc server: ", err)
 	}

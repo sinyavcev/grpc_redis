@@ -1,4 +1,4 @@
-package repository
+package redis
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-func Init(ctx context.Context, addr string) (*redis.Client, error) {
+func NewRedis(ctx context.Context, addr string) (*redis.Client, error) {
 	client := redis.NewClient(&redis.Options{
 		Addr: addr,
 	})

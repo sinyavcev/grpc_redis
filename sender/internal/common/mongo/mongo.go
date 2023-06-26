@@ -1,4 +1,4 @@
-package repository
+package mongo
 
 import (
 	"context"
@@ -7,8 +7,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func Init(ctx context.Context, database string) (db *mongo.Database, err error) {
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:27017"))
+func Init(ctx context.Context, address string, database string) (db *mongo.Database, err error) {
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(address))
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect DB")

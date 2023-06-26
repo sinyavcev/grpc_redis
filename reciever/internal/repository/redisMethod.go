@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/redis/go-redis/v9"
-	"reciever/pb"
+	"github.com/sinyavcev/proto/pb"
 )
 
 type DB struct {
@@ -13,6 +13,7 @@ type DB struct {
 
 func (db *DB) CreateUser(ctx context.Context, user pb.CreateUserRequest) error {
 	err := db.redis.Set(ctx, user.Phone, user.Name, 0).Err()
+
 	if err != nil {
 		fmt.Errorf("Redis insert failed", err)
 		return err
@@ -24,7 +25,8 @@ func (db *DB) UpdateUser(ctx context.Context, user pb.UpdateUserRequest) (string
 	if err != nil {
 		fmt.Errorf("db.redis.Get", err)
 	}
-	err = db.redis.Set(ctx, user.Phone, user.Name, 0).Err()
+	err = db.redis.Set(ctx, user.Phone, &user.Name, 0).Err()
+
 	if err != nil {
 		fmt.Errorf("Redis update failed", err)
 		return "", err
